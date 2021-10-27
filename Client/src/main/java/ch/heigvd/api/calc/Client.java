@@ -28,6 +28,7 @@ public class Client {
         Socket clientSocket = null;
         BufferedReader stdin = null;
         BufferedWriter writer = null;
+        BufferedReader reader = null;
 
         /* TODO: Implement the client here, according to your specification
          *   The client has to do the following:
@@ -43,13 +44,21 @@ public class Client {
             clientSocket = new Socket("localhost", LISTEN_PORT);
             stdin = new BufferedReader(new InputStreamReader(System.in));
             writer = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()));
+            reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
-            String line;
-            while ((line = stdin.readLine()) != null) {
-                System.out.println("nbolo" + line);
-                writer.write(line + "\n");
-                writer.flush();
+            String fromServer, fromUser;
+
+            while ((fromServer = reader.readLine()) != null) {
+                System.out.println(fromServer);
+                fromUser = stdin.readLine();
+                if (fromUser != null) {
+                    writer.write(fromUser + "\n");
+                    writer.flush();
+                    System.out.println(reader.readLine());
+                }
             }
+
+
 
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, ex.toString(), ex);

@@ -3,6 +3,9 @@ package ch.heigvd.api.calc;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -12,6 +15,7 @@ import java.util.logging.Logger;
 public class Server {
 
     private final static Logger LOG = Logger.getLogger(Server.class.getName());
+    private final static int SERVER_PORT = 3101;
 
     /**
      * Main function to start the server
@@ -31,7 +35,21 @@ public class Server {
          *  The receptionist just creates a server socket and accepts new client connections.
          *  For a new client connection, the actual work is done by the handleClient method below.
          */
+        LOG.info("Starting server...");
+        ServerSocket serverSocket;
+        Socket clientSocket = null;
 
+        try {
+            serverSocket = new ServerSocket(SERVER_PORT);
+            clientSocket = serverSocket.accept();
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return;
+        }
+
+        while (true) {
+            handleClient(clientSocket);
+        }
     }
 
     /**
@@ -40,7 +58,6 @@ public class Server {
      * @param clientSocket with the connection with the individual client.
      */
     private void handleClient(Socket clientSocket) {
-
         /* TODO: implement the handling of a client connection according to the specification.
          *   The server has to do the following:
          *   - initialize the dialog according to the specification (for example send the list
@@ -50,6 +67,77 @@ public class Server {
          *     - Handle the message
          *     - Send to result to the client
          */
+        BufferedReader in = null;
+        BufferedWriter out = null;
+
+        try {
+            LOG.log(Level.INFO, "Single-threaded: Waiting for a new client on port {0}", SERVER_PORT);
+            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
+            out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
+            String fromClient;
+
+            out.write("HEIG Calculator, available operators : { +, - , *, / } \n");
+            out.flush();
+            LOG.info("Reading until client sends BYE or closes the connection...");
+            while ((fromClient = in.readLine()) != null) {
+                if (fromClient.toLowerCase(Locale.ROOT).contains("bye")) break;
+                String[] args = fromClient.split(" ", 3);
+                System.out.println(Arrays.toString(args));
+                int result, op1, op2;
+                op1 = Integer.getInteger(args[0]);
+                op2 = Integer.getInteger(args[2]);
+
+                switch (args[1]) {
+                    case "+":
+                        result = op1 + op2;
+                        break;
+                    case "-":
+                        result = op1 - op2;
+                        break;
+                    case "*":
+                        result = op1 * op2;
+                        break;
+                    case "/":
+                        result = op1 / op2;
+                        break;
+                    default:
+                        result = 0;
+                        break;
+                }
+                out.write("result" + result);
+                out.flush();
+            }
+
+            LOG.info("Cleaning up resources...");
+            clientSocket.close();
+            in.close();
+            out.close();
+
+        } catch (IOException ex) {
+            if (in != null) {
+                try {
+                    in.close();
+                } catch (IOException ex1) {
+                    LOG.log(Level.SEVERE, ex1.getMessage(), ex1);
+                }
+            }
+            if (out != null) {
+                try {
+                    out.close();
+                } catch (IOException ex1) {
+                    LOG.log(Level.SEVERE, ex1.getMessage(), ex1);
+                }
+            }
+            if (clientSocket != null) {
+                try {
+                    clientSocket.close();
+                } catch (IOException ex1) {
+                    LOG.log(Level.SEVERE, ex1.getMessage(), ex1);
+                }
+            }
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+        }
+
 
     }
 }
