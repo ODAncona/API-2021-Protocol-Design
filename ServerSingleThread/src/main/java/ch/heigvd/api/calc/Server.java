@@ -46,10 +46,7 @@ public class Server {
             LOG.log(Level.SEVERE, null, ex);
             return;
         }
-
-        while (true) {
-            handleClient(clientSocket);
-        }
+        handleClient(clientSocket);
     }
 
     /**
@@ -76,38 +73,44 @@ public class Server {
             out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream(), StandardCharsets.UTF_8));
             String fromClient;
 
+            // Send available options
             out.write("HEIG Calculator, available operators : { +, - , *, / } \n");
             out.flush();
             LOG.info("Reading until client sends BYE or closes the connection...");
             while ((fromClient = in.readLine()) != null) {
                 if (fromClient.toLowerCase(Locale.ROOT).contains("bye")) break;
-                String[] args = fromClient.split(" ", 3);
-                System.out.println(Arrays.toString(args));
-                int result, op1, op2;
-                op1 = Integer.getInteger(args[0]);
-                op2 = Integer.getInteger(args[2]);
+                if (fromClient.matches("(^[\\d.]+)(\\s[+*\\/-]\\s)([\\d.]+)(\\n)?$")) {
+                    String[] args = fromClient.split(" ");
+                    double result, op1, op2;
+                    op1 = Double.parseDouble(args[0]);
+                    op2 = Double.parseDouble(args[2]);
 
-                switch (args[1]) {
-                    case "+":
-                        result = op1 + op2;
-                        break;
-                    case "-":
-                        result = op1 - op2;
-                        break;
-                    case "*":
-                        result = op1 * op2;
-                        break;
-                    case "/":
-                        result = op1 / op2;
-                        break;
-                    default:
-                        result = 0;
-                        break;
+                    switch (args[1]) {
+                        case "+":
+                            result = op1 + op2;
+                            break;
+                        case "-":
+                            result = op1 - op2;
+                            break;
+                        case "*":
+                            result = op1 * op2;
+                            break;
+                        case "/":
+                            result = op1 / op2;
+                            break;
+                        default:
+                            result = 0;
+                            break;
+                    }
+                    out.write("result " + result + "\n");
+                    out.flush();
+                } else {
+                    out.write("SyntaxError ! try again \n");
+                    out.flush();
                 }
-                out.write("result" + result);
-                out.flush();
             }
-
+            out.write("GoodBye ! \n");
+            out.flush();
             LOG.info("Cleaning up resources...");
             clientSocket.close();
             in.close();
