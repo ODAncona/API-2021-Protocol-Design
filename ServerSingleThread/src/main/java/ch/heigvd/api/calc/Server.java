@@ -30,10 +30,6 @@ public class Server {
      * Start the server on a listening socket.
      */
     private void start() {
-        /* TODO: implement the receptionist server here.
-         *  The receptionist just creates a server socket and accepts new client connections.
-         *  For a new client connection, the actual work is done by the handleClient method below.
-         */
         LOG.info("Starting server...");
         ServerSocket serverSocket;
         Socket clientSocket = null;
@@ -52,7 +48,6 @@ public class Server {
             }
             handleClient(clientSocket);
         }
-
     }
 
     /**
@@ -61,15 +56,6 @@ public class Server {
      * @param clientSocket with the connection with the individual client.
      */
     private void handleClient(Socket clientSocket) {
-        /* TODO: implement the handling of a client connection according to the specification.
-         *   The server has to do the following:
-         *   - initialize the dialog according to the specification (for example send the list
-         *     of possible commands)
-         *   - In a loop:
-         *     - Read a message from the input stream (using BufferedReader.readLine)
-         *     - Handle the message
-         *     - Send to result to the client
-         */
         BufferedReader in = null;
         BufferedWriter out = null;
 
@@ -145,6 +131,5 @@ public class Server {
             }
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
-
     }
 }

@@ -10,8 +10,8 @@ import java.util.logging.Logger;
  * Calculator server implementation - multi-thread
  */
 public class Server {
-
     private final static Logger LOG = Logger.getLogger(Server.class.getName());
+    private final static int SERVER_PORT = 3101;
 
     /**
      * Main function to start the server
@@ -27,12 +27,24 @@ public class Server {
      * Start the server on a listening socket.
      */
     private void start() {
-
-        /* TODO: implement the receptionist server here.
-         *  The receptionist just creates a server socket and accepts new client connections.
-         *  For a new client connection, the actual work is done in a new thread
-         *  by a new ServerWorker.
-         */
+        LOG.info("Starting server...");
+        ServerSocket serverSocket;
+        try {
+            serverSocket = new ServerSocket(SERVER_PORT);
+        } catch (IOException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+            return;
+        }
+        while (true) {
+            try {
+                Socket clientSocket = serverSocket.accept();
+                ServerWorker worker = new ServerWorker(clientSocket);
+                new Thread(worker).start();
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+                return;
+            }
+        }
 
     }
 }
