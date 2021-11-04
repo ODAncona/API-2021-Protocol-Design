@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,15 +37,22 @@ public class Server {
         LOG.info("Starting server...");
         ServerSocket serverSocket;
         Socket clientSocket = null;
-
         try {
             serverSocket = new ServerSocket(SERVER_PORT);
-            clientSocket = serverSocket.accept();
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
             return;
         }
-        handleClient(clientSocket);
+        while (true) {
+            try {
+                clientSocket = serverSocket.accept();
+            } catch (IOException ex) {
+                LOG.log(Level.SEVERE, null, ex);
+                return;
+            }
+            handleClient(clientSocket);
+        }
+
     }
 
     /**
@@ -115,7 +121,6 @@ public class Server {
             clientSocket.close();
             in.close();
             out.close();
-
         } catch (IOException ex) {
             if (in != null) {
                 try {
@@ -140,7 +145,6 @@ public class Server {
             }
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
-
 
     }
 }
